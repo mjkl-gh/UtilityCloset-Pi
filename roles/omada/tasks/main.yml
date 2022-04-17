@@ -1,0 +1,8 @@
+---
+    - name: install packages
+      import_tasks: tasks/packages.yml
+
+
+    - name: download Controller from tplink
+      import_tasks: tasks/setup.yml
+

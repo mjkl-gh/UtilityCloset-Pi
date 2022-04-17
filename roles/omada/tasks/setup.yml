@@ -1,0 +1,54 @@
+---
+# Install & Configure omada
+
+- name: Check if omada is installed
+  command: dpkg-query -W omadac
+  register: omada_check_deb
+  failed_when: omada_check_deb.rc > 1
+  changed_when: omada_check_deb.rc == 1
+
+- name: Install omada
+  apt: deb="{{ omada_url }}"
+  become: true
+  when: omada_check_deb.rc == 1
+
+- name: omada install status
+  debug:
+    msg: "{{ omadainstall.stdout_lines }}"
+  when: omada_check_deb.rc == 1
+
+- name: make sure Omada is runnig.
+  service:
+    name: tpeap
+    state: started
+    enabled: true
+
+- name: Omada install check
+  command: which tpeap
+  failed_when: false
+  changed_when: false
+  check_mode: false
+  register: omada_done
+
+# - name: omada install status
+#   debug:
+#     msg: "{{ omada_done.stdout_lines }}"
+#   when: omada_check_deb.rc == 1
+
+- name: Check if reboot required
+  stat:
+    path: /var/run/reboot-required
+  register: reboot_required
+
+- name: Reboot
+  reboot:
+    post_reboot_delay: 30
+  when: reboot_required.stat.exists
+
+# - name: Get my public IP
+#   community.general.ipify_facts:
+#   register: ip
+
+- name: url
+  debug:
+    msg: "Omada Controller is running at http://{{ ipify_public_ip }}:8088"
